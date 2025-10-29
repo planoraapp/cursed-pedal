@@ -15,6 +15,8 @@ let projectiles = [];
 let obstacles = [];
 let keys = {};
 let mouse = { x: 0, y: 0 };
+let damageNumbers = []; // Números de dano flutuantes
+let cameraMode = 'far'; // 'far' ou 'close' - modo da câmera
 
 // Physics
 const GRAVITY = 9.81;
@@ -854,7 +856,7 @@ function createProjectile(position, direction, owner) {
         velocity: direction.clone().normalize().multiplyScalar(2.0), // Velocidade maior e direção fixa
         direction: direction.clone().normalize(), // Direção inicial fixa em linha reta
         owner: owner,
-        lifetime: 3000 // 3 seconds
+        lifetime: 60000 // 60 segundos - alcance máximo baseado no mapa
     });
 }
 
@@ -963,7 +965,14 @@ function updatePlayer(deltaTime) {
     }
     
     // Update camera to follow player
-    const cameraOffset = new THREE.Vector3(0, 80, 120);
+    // Ajustar offset baseado no modo da câmera
+    let cameraY = 80;
+    let cameraZ = 120;
+    if (cameraMode === 'close') {
+        cameraY = 20;
+        cameraZ = 40;
+    }
+    const cameraOffset = new THREE.Vector3(0, cameraY, cameraZ);
     cameraOffset.applyQuaternion(player.mesh.quaternion);
     const targetCameraPos = player.mesh.position.clone().add(cameraOffset);
     camera.position.lerp(targetCameraPos, 0.1);
@@ -1192,7 +1201,7 @@ function updateProjectiles(deltaTime) {
             projectile.mesh.position.add(projectile.velocity);
         }
         
-        // Check lifetime
+        // Check lifetime (backup - os projéteis devem ser destruídos pelos limites ou colisões)
         projectile.lifetime -= deltaTime * 16.67;
         if (projectile.lifetime <= 0) {
             scene.remove(projectile.mesh);
@@ -1200,7 +1209,7 @@ function updateProjectiles(deltaTime) {
             continue;
         }
         
-        // Check boundary collision
+        // Check boundary collision (limite dos projéteis - até os limites do mapa)
         const halfSize = GROUND_SIZE / 2;
         if (Math.abs(projectile.mesh.position.x) > halfSize ||
             Math.abs(projectile.mesh.position.z) > halfSize) {
@@ -1238,18 +1247,51 @@ function updateProjectiles(deltaTime) {
             }
         });
         
+        // Check parked cars collision
+        cars.forEach(car => {
+            const distance = projectile.mesh.position.distanceTo(car.position);
+            const carSize = 3; // Raio aproximado do carro estacionado
+            if (distance < carSize && projectile.mesh.position.y >= car.position.y - 1 && projectile.mesh.position.y <= car.position.y + 2) {
+                hitObstacle = true;
+            }
+        });
+        
+        // Check pedestrians collision
+        pedestrians.forEach(pedestrian => {
+            const distance = projectile.mesh.position.distanceTo(pedestrian.mesh.position);
+            const pedestrianSize = 0.5; // Raio aproximado do pedestre
+            if (distance < pedestrianSize && projectile.mesh.position.y >= pedestrian.mesh.position.y - 0.5 && projectile.mesh.position.y <= pedestrian.mesh.position.y + 2) {
+                hitObstacle = true;
+            }
+        });
+        
         if (hitObstacle) {
             scene.remove(projectile.mesh);
             projectiles.splice(i, 1);
             continue;
         }
         
-        // Check player collision
+        // Check player collision com física melhorada
         if (projectile.owner === 'enemy') {
-            const distance = projectile.mesh.position.distanceTo(player.mesh.position);
-            if (distance < 2.5) {
-                player.health -= 10;
+            const projectilePos = projectile.mesh.position;
+            const playerPos = player.mesh.position;
+            
+            // Melhor detecção de colisão
+            const dx = projectilePos.x - playerPos.x;
+            const dy = projectilePos.y - playerPos.y;
+            const dz = projectilePos.z - playerPos.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            
+            // Verificar se o projétil está dentro do volume do выступает
+            const playerSize = 3;
+            if (distance < playerSize && projectilePos.y >= playerPos.y - 2 && projectilePos.y <= playerPos.y + 4) {
+                const damage = 10;
+                player.health -= damage;
                 gameState.health = player.health;
+                
+                // Criar número de dano flutuante
+                createDamageNumber(playerPos.clone(), damage, 'player');
+                
                 updateHealthBar();
                 scene.remove(projectile.mesh);
                 projectiles.splice(i, 1);
@@ -1261,19 +1303,39 @@ function updateProjectiles(deltaTime) {
             }
         }
         
-        // Check enemy collision
+        // Check enemy collision com física melhorada
         if (projectile.owner === 'player') {
             let hitEnemy = false;
             for (let enemyIndex = enemies.length - 1; enemyIndex >= 0; enemyIndex--) {
                 const enemy = enemies[enemyIndex];
-                if (enemy.health <= 0) continue;
-                const distance = projectile.mesh.position.distanceTo(enemy.mesh.position);
-                if (distance < 2.5) {
-                    enemy.health -= 20;
+                if (enemy.health <= 0 || enemy.isDestroyed) continue;
+                
+                // Melhor detecção de colisão - usar bounding box do veículo
+                const enemySize = 3; // Raio aproximado do veículo
+                const projectilePos = projectile.mesh.position;
+                const enemyPos = enemy.mesh.position;
+                
+                // Calcular distância 3D
+                const dx = projectilePos.x - enemyPos.x;
+                const dy = projectilePos.y - enemyPos.y;
+                const dz = projectilePos.z - enemyPos.z;
+                const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                
+                // Verificar se o projétil está dentro do volume do inimigo
+                if (distance < enemySize && projectilePos.y >= enemyPos.y - 2 && projectilePos.y <= enemyPos.y + 4) {
+                    // Calcular dano (pode variar baseado em critérios futuros)
+                    const damage = 20;
+                    const oldHealth = enemy.health;
+                    enemy.health -= damage;
+                    
+                    // Criar número de dano flutuante
+                    createDamageNumber(enemyPos.clone(), damage, 'enemy');
+                    
                     hitEnemy = true;
                     
-                    if (enemy.health <= 0) {
+                    if (enemy.health <= 0 && !enemy.isDestroyed) {
                         // Enemy destroyed
+                        destroyVehicle(enemy);
                         scene.remove(enemy.mesh);
                         enemies.splice(enemyIndex, 1);
                         gameState.score += 100;
@@ -1299,6 +1361,87 @@ function updateProjectiles(deltaTime) {
     }
 }
 
+// Create damage number (floating damage text)
+function createDamageNumber(position, damage, targetType) {
+    // Criar sprite de texto para o número de dano
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = 128;
+    canvas.height = 64;
+    
+    context.fillStyle = targetType === 'player' ? '#ff0000' : '#ffaa00';
+    context.font = 'bold 48px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText('-' + Math.round(damage), 64, 32);
+    
+    // Adicionar contorno
+    context.strokeStyle = '#000000';
+    context.lineWidth = 4;
+    context.strokeText('-' + Math.round(damage), 64, 32);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMaterial = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false
+    });
+    
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.position.copy(position);
+    sprite.position.y += 4; // Acima do veículo
+    sprite.scale.set(3, 1.5, 1);
+    sprite.renderOrder = 999; // Renderizar por último
+    
+    scene.add(sprite);
+    
+    damageNumbers.push({
+        sprite: sprite,
+        velocity: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.5, // Movimento horizontal aleatório
+            0.3, // Movimento para cima
+            0
+        ),
+        lifetime: 60, // Frames de vida
+        fadeStart: 40, // Quando começar a desaparecer
+        initialScale: 3
+    });
+}
+
+// Update damage numbers
+function updateDamageNumbers(deltaTime) {
+    for (let i = damageNumbers.length - 1; i >= 0; i--) {
+        const damageNum = damageNumbers[i];
+        
+        // Mover para cima e lateralmente
+        damageNum.sprite.position.add(damageNum.velocity);
+        
+        // Fade out
+        if (damageNum.lifetime < damageNum.fadeStart) {
+            const alpha = damageNum.lifetime / damageNum.fadeStart;
+            damageNum.sprite.material.opacity = alpha;
+        }
+        
+        // Diminuir escala ao longo do tempo
+        const scaleFactor = 1 + (60 - damageNum.lifetime) * 0.02;
+        damageNum.sprite.scale.set(
+            damageNum.initialScale * scaleFactor,
+            damageNum.initialScale * 0.5 * scaleFactor,
+            1
+        );
+        
+        damageNum.lifetime--;
+        
+        if (damageNum.lifetime <= 0) {
+            scene.remove(damageNum.sprite);
+            damageNum.sprite.material.dispose();
+            damageNum.sprite.material.map.dispose();
+            damageNumbers.splice(i, 1);
+        }
+    }
+}
+
 // Update health bar
 function updateHealthBar() {
     const percentage = Math.max(0, (gameState.health / gameState.maxHealth) * 100);
@@ -1318,6 +1461,13 @@ function gameOver() {
     document.getElementById('game-over-screen').classList.remove('hidden');
 }
 
+// Camera toggle function (reutilizável)
+function toggleCamera() {
+    cameraMode = cameraMode === 'far' ? 'close' : 'far';
+    const btn = document.getElementById('camera-toggle-btn');
+    btn.textContent = cameraMode === 'far' ? '📷 VISTA' : '📷 ZOOM';
+}
+
 // Setup event listeners
 function setupEventListeners() {
     // Keyboard
@@ -1331,6 +1481,13 @@ function setupEventListeners() {
                 document.getElementById('pause-screen').classList.remove('hidden');
             } else {
                 document.getElementById('pause-screen').classList.add('hidden');
+            }
+        }
+        
+        // Camera toggle with C key
+        if (e.key === 'c' || e.key === 'C') {
+            if (gameState.started && !gameState.paused && !gameState.gameOver) {
+                toggleCamera();
             }
         }
     });
@@ -1363,6 +1520,9 @@ function setupEventListeners() {
         location.reload();
     });
     
+    // Camera toggle button
+    document.getElementById('camera-toggle-btn').addEventListener('click', toggleCamera);
+    
     // Window resize
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -1388,6 +1548,7 @@ function animate() {
     checkVehicleCollisions(); // Colisões entre veículos com física
     updateProjectiles(deltaTime);
     updatePedestrians(deltaTime); // Atualizar movimento dos pedestres
+    updateDamageNumbers(deltaTime); // Atualizar números de dano flutuantes
     
     // Render
     renderer.render(scene, camera);

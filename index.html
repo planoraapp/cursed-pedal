@@ -11,30 +11,37 @@
         <canvas id="game-canvas"></canvas>
         
         <!-- HUD -->
-        <div id="hud">
-            <div id="health-bar-container">
-                <div id="health-bar-label">VIDA</div>
-                <div id="health-bar">
-                    <div id="health-bar-fill"></div>
-                </div>
-                <div id="health-text">100%</div>
-            </div>
-            
-            <div id="ammo-container">
-                <div id="ammo-label">MUNIÇÃO</div>
-                <div id="ammo-text">∞</div>
-            </div>
-            
-            <div id="score-container">
-                <div id="score-label">PONTOS</div>
-                <div id="score-text">0</div>
-            </div>
-            
-            <div id="speed-container">
-                <div id="speed-label">VELOCIDADE</div>
-                <div id="speed-text">0 km/h</div>
-            </div>
+        <!-- Velocímetro - Canto inferior esquerdo -->
+        <div id="speed-container">
+            <div id="speed-label">VELOCIDADE</div>
+            <div id="speed-text">0 km/h</div>
         </div>
+        
+        <!-- Barra de vida - Centro inferior -->
+        <div id="health-bar-container">
+            <div id="health-bar-label">VIDA</div>
+            <div id="health-bar">
+                <div id="health-bar-fill"></div>
+            </div>
+            <div id="health-text">100%</div>
+        </div>
+        
+        <!-- Munição - Canto inferior direito -->
+        <div id="ammo-container">
+            <div id="ammo-label">MUNIÇÃO</div>
+            <div id="ammo-text">∞</div>
+        </div>
+        
+        <!-- Pontuação - Canto superior direito -->
+        <div id="score-container">
+            <div id="score-label">PONTOS</div>
+            <div id="score-text">0</div>
+        </div>
+        
+        <!-- Botão de câmera - Canto superior direito -->
+        <button id="camera-toggle-btn" title="Alternar visão da câmera">
+            📷 VISTA
+        </button>
         
         <!-- Instruções -->
         <div id="instructions">
@@ -42,6 +49,7 @@
             <p><strong>WASD</strong> - Movimentar</p>
             <p><strong>Espaço</strong> - Atirar</p>
             <p><strong>Mouse</strong> - Rotacionar câmera</p>
+            <p><strong>C</strong> - Alternar vista da câmera</p>
             <p><strong>ESC</strong> - Pausar</p>
             <button id="start-btn">INICIAR JOGO</button>
         </div>

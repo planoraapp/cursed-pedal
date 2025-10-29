@@ -23,37 +23,51 @@ body {
     height: 100%;
 }
 
-#hud {
+/* Velocímetro - Canto inferior esquerdo */
+#speed-container {
     position: absolute;
-    top: 20px;
+    bottom: 20px;
     left: 20px;
     z-index: 100;
-    font-size: 14px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 2px solid #00ff00;
+    min-width: 160px;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
 }
 
+/* Barra de vida - Centro inferior */
 #health-bar-container {
-    margin-bottom: 15px;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px;
-    border-radius: 5px;
-    border: 2px solid #ff0000;
-    min-width: 200px;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 3px solid #ff0000;
+    min-width: 300px;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
 }
 
 #health-bar-label {
-    font-size: 12px;
-    margin-bottom: 5px;
+    font-size: 14px;
+    margin-bottom: 8px;
     color: #ff0000;
     font-weight: bold;
+    text-align: center;
 }
 
 #health-bar {
     width: 100%;
-    height: 20px;
+    height: 25px;
     background: rgba(255, 0, 0, 0.3);
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 0, 0, 0.5);
 }
 
 #health-bar-fill {
@@ -64,30 +78,84 @@ body {
 }
 
 #health-text {
-    font-size: 11px;
-    text-align: right;
+    font-size: 14px;
+    text-align: center;
+    font-weight: bold;
+    color: #fff;
 }
 
-#ammo-container, #score-container, #speed-container {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px;
-    border-radius: 5px;
+/* Munição - Canto inferior direito */
+#ammo-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 12px 15px;
+    border-radius: 8px;
     border: 2px solid #00ff00;
-    margin-bottom: 10px;
-    min-width: 150px;
+    min-width: 160px;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+/* Pontuação - Canto superior direito */
+#score-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 2px solid #00ff00;
+    min-width: 160px;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+/* Botão de câmera - Canto superior direito */
+#camera-toggle-btn {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+#camera-toggle-btn:hover {
+    background: rgba(0, 255, 0, 0.2);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+    transform: scale(1.05);
+}
+
+#camera-toggle-btn:active {
+    transform: scale(0.95);
 }
 
 #ammo-label, #score-label, #speed-label {
-    font-size: 12px;
-    margin-bottom: 5px;
+    font-size: 11px;
+    margin-bottom: 6px;
     color: #00ff00;
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 #ammo-text, #score-text, #speed-text {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     color: #fff;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
 }
 
 #instructions {
