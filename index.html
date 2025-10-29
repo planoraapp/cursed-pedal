@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twisted Metal 3D - Combate Veicular</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- HUD -->
+        <div id="hud">
+            <div id="health-bar-container">
+                <div id="health-bar-label">VIDA</div>
+                <div id="health-bar">
+                    <div id="health-bar-fill"></div>
+                </div>
+                <div id="health-text">100%</div>
+            </div>
+            
+            <div id="ammo-container">
+                <div id="ammo-label">MUNIÇÃO</div>
+                <div id="ammo-text">∞</div>
+            </div>
+            
+            <div id="score-container">
+                <div id="score-label">PONTOS</div>
+                <div id="score-text">0</div>
+            </div>
+            
+            <div id="speed-container">
+                <div id="speed-label">VELOCIDADE</div>
+                <div id="speed-text">0 km/h</div>
+            </div>
+        </div>
+        
+        <!-- Instruções -->
+        <div id="instructions">
+            <h2>CONTROLES</h2>
+            <p><strong>WASD</strong> - Movimentar</p>
+            <p><strong>Espaço</strong> - Atirar</p>
+            <p><strong>Mouse</strong> - Rotacionar câmera</p>
+            <p><strong>ESC</strong> - Pausar</p>
+            <button id="start-btn">INICIAR JOGO</button>
+        </div>
+        
+        <!-- Tela de Pausa -->
+        <div id="pause-screen" class="hidden">
+            <h2>PAUSADO</h2>
+            <button id="resume-btn">CONTINUAR</button>
+        </div>
+        
+        <!-- Tela de Game Over -->
+        <div id="game-over-screen" class="hidden">
+            <h2>GAME OVER</h2>
+            <div id="final-score">Pontuação Final: 0</div>
+            <button id="restart-btn">REINICIAR</button>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
+
